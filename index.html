@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CRISIS.io — Global Disaster Monitoring</title>
+<meta name="description" content="Real-time global crisis and disaster monitoring dashboard. Track earthquakes, floods, fires, storms worldwide."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;600;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="cursor"></div>
+
+<!-- Loader -->
+<div id="loader">
+  <div class="loader-content">
+    <div class="loader-icon">⚠</div>
+    <div class="loader-title">CRISIS.io</div>
+    <div class="loader-subtitle">Global Disaster Monitoring System</div>
+    <div class="loader-progress"><div class="loader-fill"></div></div>
+    <div class="loader-status" id="loader-status">Connecting to satellite feeds...</div>
+  </div>
+  <div class="scan-line"></div>
+</div>
+
+<!-- App -->
+<div id="app" class="hidden">
+  <!-- Header -->
+  <header id="header">
+    <div class="header-brand">
+      <span class="brand-alert">⚠</span>
+      <span class="brand-text">CRISIS<span class="brand-dot">.</span>io</span>
+      <div class="live-badge"><span class="live-dot"></span>LIVE</div>
+    </div>
+    <nav class="header-nav">
+      <button class="nav-btn active" data-view="overview">Overview</button>
+      <button class="nav-btn" data-view="map">World Map</button>
+      <button class="nav-btn" data-view="events">Events</button>
+      <button class="nav-btn" data-view="trends">Trends</button>
+      <button class="nav-btn" data-view="alerts">Alerts <span class="alert-count">7</span></button>
+    </nav>
+    <div class="header-right">
+      <div class="clock" id="clock">00:00:00 UTC</div>
+      <button class="icon-btn" id="theme-btn">☾</button>
+      <div class="signal-bars">
+        <div class="bar h1"></div><div class="bar h2"></div><div class="bar h3"></div><div class="bar h4"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main id="main">
+
+    <!-- OVERVIEW -->
+    <section class="view active" id="view-overview">
+      <!-- Alert Banner -->
+      <div class="alert-banner" id="alert-banner">
+        <span class="alert-icon">🔴</span>
+        <div class="alert-ticker" id="alert-ticker">
+          <span>CRITICAL: M7.2 earthquake detected 45km NW of Kathmandu, Nepal — Tsunami watch issued for coastal areas</span>
+        </div>
+        <button class="alert-dismiss">✕</button>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card critical"><div class="stat-icon">🌍</div><div class="stat-num" data-count="247">0</div><div class="stat-label">Active Events</div><div class="stat-change up">↑ 12 today</div></div>
+        <div class="stat-card danger"><div class="stat-icon">💀</div><div class="stat-num" data-count="1847">0</div><div class="stat-label">Casualties (est.)</div><div class="stat-change">Updated 3m ago</div></div>
+        <div class="stat-card warn"><div class="stat-icon">🏠</div><div class="stat-num" data-count="84200">0</div><div class="stat-label">Displaced People</div><div class="stat-change up">↑ 2,400</div></div>
+        <div class="stat-card info"><div class="stat-icon">🆘</div><div class="stat-num" data-count="38">0</div><div class="stat-label">Relief Ops Active</div><div class="stat-change">In 24 countries</div></div>
+        <div class="stat-card ok"><div class="stat-icon">✈</div><div class="stat-num" data-count="156">0</div><div class="stat-label">Aid Workers</div><div class="stat-change">Field deployed</div></div>
+      </div>
+
+      <!-- Main Grid -->
+      <div class="overview-grid">
+        <!-- World Map Visualization -->
+        <div class="panel map-panel">
+          <div class="panel-header">
+            <span class="panel-title">Event Distribution</span>
+            <div class="map-filters">
+              <button class="map-filter active" data-type="all">All</button>
+              <button class="map-filter" data-type="earthquake">🌋 Quake</button>
+              <button class="map-filter" data-type="flood">🌊 Flood</button>
+              <button class="map-filter" data-type="fire">🔥 Fire</button>
+              <button class="map-filter" data-type="storm">🌀 Storm</button>
+            </div>
+          </div>
+          <div class="world-map" id="world-map">
+            <svg viewBox="0 0 900 450" id="map-svg" class="map-svg"></svg>
+            <div class="map-events" id="map-events"></div>
+          </div>
+        </div>
+
+        <!-- Live Feed -->
+        <div class="panel feed-panel">
+          <div class="panel-header">
+            <span class="panel-title">Live Feed</span>
+            <span class="feed-badge"><span class="live-dot sm"></span>Auto-update</span>
+          </div>
+          <div class="live-feed" id="live-feed"></div>
+        </div>
+
+        <!-- Event Type Chart -->
+        <div class="panel chart-panel">
+          <div class="panel-header"><span class="panel-title">Events by Type</span></div>
+          <div class="type-chart" id="type-chart"></div>
+        </div>
+
+        <!-- Severity Breakdown -->
+        <div class="panel severity-panel">
+          <div class="panel-header"><span class="panel-title">Severity Levels</span></div>
+          <div class="severity-bars" id="severity-bars"></div>
+        </div>
+
+        <!-- Region Stats -->
+        <div class="panel region-panel">
+          <div class="panel-header"><span class="panel-title">Regional Overview</span></div>
+          <div class="region-list" id="region-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EVENTS LIST VIEW -->
+    <section class="view" id="view-events">
+      <div class="events-header">
+        <div class="events-title-row">
+          <h1>Active Events</h1>
+          <span class="events-count" id="events-count">247 events</span>
+        </div>
+        <div class="events-filters">
+          <div class="search-box"><span>⌕</span><input type="text" id="event-search" placeholder="Search events..."/></div>
+          <select class="filter-sel" id="type-filter">
+            <option value="all">All Types</option>
+            <option value="earthquake">Earthquake</option>
+            <option value="flood">Flood</option>
+            <option value="fire">Wildfire</option>
+            <option value="storm">Storm</option>
+            <option value="pandemic">Pandemic</option>
+          </select>
+          <select class="filter-sel" id="severity-filter">
+            <option value="all">All Severities</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+          <select class="filter-sel" id="region-filter">
+            <option value="all">All Regions</option>
+            <option value="Asia">Asia</option>
+            <option value="Europe">Europe</option>
+            <option value="Americas">Americas</option>
+            <option value="Africa">Africa</option>
+            <option value="Oceania">Oceania</option>
+          </select>
+        </div>
+      </div>
+      <div class="events-grid" id="events-grid"></div>
+    </section>
+
+    <!-- TRENDS VIEW -->
+    <section class="view" id="view-trends">
+      <div class="trends-header"><h1>Trends & Analytics</h1></div>
+      <div class="trends-grid">
+        <div class="panel wide-panel">
+          <div class="panel-header"><span class="panel-title">Monthly Event Frequency (2024–2025)</span></div>
+          <canvas id="trends-chart" height="200"></canvas>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Disaster Type Trends</span></div>
+          <canvas id="type-trends-chart" height="250"></canvas>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Response Time Distribution</span></div>
+          <canvas id="response-chart" height="250"></canvas>
+        </div>
+        <div class="panel wide-panel">
+          <div class="panel-header"><span class="panel-title">Global Risk Index by Region</span></div>
+          <div class="risk-bars" id="risk-bars"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ALERTS VIEW -->
+    <section class="view" id="view-alerts">
+      <div class="alerts-header"><h1>Alert Center</h1><p>Showing 7 active alerts</p></div>
+      <div class="alerts-list" id="alerts-list"></div>
+    </section>
+
+    <!-- MAP VIEW -->
+    <section class="view" id="view-map">
+      <div class="fullmap-wrap">
+        <div class="fullmap-header">
+          <h2>Interactive World Map</h2>
+          <div class="map-legend">
+            <span class="leg-item"><span class="leg-dot" style="background:#ef4444"></span>Earthquake</span>
+            <span class="leg-item"><span class="leg-dot" style="background:#3b82f6"></span>Flood</span>
+            <span class="leg-item"><span class="leg-dot" style="background:#f97316"></span>Wildfire</span>
+            <span class="leg-item"><span class="leg-dot" style="background:#8b5cf6"></span>Storm</span>
+            <span class="leg-item"><span class="leg-dot" style="background:#10b981"></span>Pandemic</span>
+          </div>
+        </div>
+        <div class="fullmap-container">
+          <svg viewBox="0 0 1000 500" id="fullmap-svg" class="fullmap-svg"></svg>
+          <div class="fullmap-events" id="fullmap-events"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Event Detail Modal -->
+<div class="modal-overlay hidden" id="modal-overlay">
+  <div class="event-modal" id="event-modal">
+    <button class="modal-close-btn" id="modal-close">✕</button>
+    <div class="event-modal-content" id="event-modal-content"></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="app.js"></script>
+</body>
+</html>
